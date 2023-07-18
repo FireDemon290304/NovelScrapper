@@ -2,6 +2,11 @@ from single_chapter import *
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from utils import timeme
+# from selenium import webdriver
+# from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
 import argparse
 import json
 import requests
@@ -10,8 +15,8 @@ import os
 
 
 @timeme
-def create_fiction(do_url):
-    master, folder_path, chapters = _scrap(do_url)
+def create_fiction(fiction_url):
+    master, folder_path, chapters = _scrap(fiction_url)
 
     # Empty string for saving the order of the chapters
     order = ""
@@ -34,8 +39,8 @@ def create_fiction(do_url):
 
 
 @timeme
-def update_fiction(do_url):
-    master, folder_path, chapters = _scrap(do_url)
+def update_fiction(fiction_url):
+    master, folder_path, chapters = _scrap(fiction_url)
 
     # Load the existing order of chapters, if available
     order_file_path = os.path.join(folder_path, "-order.txt")
@@ -60,18 +65,39 @@ def update_fiction(do_url):
         order += (master + chapter_url) + '\n'
 
     # Save the updated chapter order to a text file
-    with open(order_file_path, "w") as temp:
-        temp.write(order)
+    with open(order_file_path, "w") as order_file:
+        order_file.write(order)
 
 
-def _scrap(do_url):
+def _scrap(fiction_url):
+    # Create the "Fictions" directory if it doesn't exist
+    fiction_dir = os.path.join(os.getcwd(), "Fictions")
+    os.makedirs(fiction_dir, exist_ok=True)
+
     # Split the provided URL into master and sub parts
-    parsed_url = urlparse(do_url)
+    parsed_url = urlparse(fiction_url)
     master = parsed_url.scheme + "://" + parsed_url.netloc
-    sub = parsed_url.path
 
+    # Check for supported sites
+    if master not in supported_sites:
+        raise ValueError(f"Unsupported site: {master}")
+
+    # Get scrapping function for specific site
+    scraping_function = supported_sites[master]
+    chapters, title = scraping_function(fiction_url)  # Do stuff
+
+    # Create a folder to store the chapter text files
+    folder_name = title.replace(" ", "_")  # .replace(".", "-").replace(",", "-")
+    folder_name = re.sub(r'[<>:"/\\|?*]', '', folder_name)
+    folder_path = os.path.join(fiction_dir, folder_name)
+    os.makedirs(folder_path, exist_ok=True)
+
+    return master, folder_path, chapters
+
+
+def _scrap_rr(fiction_url):
     # Send a GET request to the webpage
-    response = requests.get(url=master + sub)
+    response = requests.get(fiction_url)
     soup = BeautifulSoup(response.text, "html.parser")
 
     # Find all chapter rows
@@ -80,21 +106,38 @@ def _scrap(do_url):
     # Get the title of the novel
     title = soup.find("h1").get_text()
 
-    # Create the "Fictions" directory if it doesn't exist
-    fiction_dir = os.path.join(os.getcwd(), "Fictions")
-    os.makedirs(fiction_dir, exist_ok=True)
+    return chapters, title
 
-    # Create a folder to store the chapter text files
-    folder_name = title.replace(" ", "_")
-    folder_name = re.sub(r'[<>:"/\\|?*]', '', folder_name)
-    folder_path = os.path.join(fiction_dir, folder_name)
-    os.makedirs(folder_path, exist_ok=True)
 
-    return master, folder_path, chapters
+def _scrap_sh(fiction_url):
+    # TODO: use selenium because js sucks -_-
+    fiction_url += ""
+    # webdriver_path = r""
+    # opera_binary_path = r""
+
+    # selenium_options = webdriver.ChromeOptions()
+    # selenium_options.binary_location = opera_binary_path
+    # selenium_options.add_argument('--headless')  # Run Chrome in headless mode (without opening a browser window)
+    # service = Service(webdriver_path)
+    # driver = webdriver.Chrome(service=service, options=selenium_options)
+    #
+    # wait = WebDriverWait(driver, 5)  # Wait for a maximum of 5 seconds
+    #
+    # Find all chapter rows
+    # chapters_table = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="review_new_tab"]/div[2]/div/ol')))
+    # print(chapters_table)
+    # chapters = ""
+    #
+    # Get the title of the novel
+    # title_element = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='fic_title']")))
+    # title = title_element.text
+    #
+    # return chapters, title
 
 
 @timeme
 def config_update(urls_list):
+    print(f'Updating a total of {len(urls_list)} novel(s).')
     for URL in urls_list:
         print(f"Updating: {URL}")
         update_fiction(URL)
@@ -102,13 +145,20 @@ def config_update(urls_list):
 
 @timeme
 def config_create(urls_list):
+    print(f'Creating a total of {len(urls_list)} novel(s).')
     for URL in urls_list:
-        print(f"Creating: {URL}")
-        create_fiction(URL)
+        try:
+            print(f"Creating: {URL}")
+            create_fiction(URL)
+        except ValueError:
+            print("Unsupported site\n"
+                  f"URL: {URL}")
+            continue
 
 
 if __name__ == '__main__':
-    supported_sites = {"https://www.royalroad.com", "https://www.scribblehub.com"}
+    supported_sites = {"https://www.royalroad.com": _scrap_rr,
+                       "https://www.scribblehub.com": _scrap_sh}
     parser = argparse.ArgumentParser(description="Web scraper for novels\nSupports Royal Road &")
     parser.add_argument("--config", type=str, help="Path to the JSON configuration file")
     parser.add_argument("--create", type=str, help="Full URL of the novel you want to scrap")
@@ -141,4 +191,5 @@ if __name__ == '__main__':
         update_fiction(args.update)
 
     else:
-        parser.error("Please provide either a JSON configuration file using --config or the URL using --create or --update")
+        parser.error(
+            "Please provide either a JSON configuration file using --config or the URL using --create or --update")
