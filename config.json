@@ -1,6 +1,20 @@
 
 {
-    "//": "Provide url(s) in the urls list, and either 'create' or 'update' as the mode",
+    "//": [
+        "Provide url(s) in the urls list",
+        "update_mode is a bool and enables updating new chapters, rather than creating all chapters from scratch",
+        "verbose is a bool and provides info on execution.",
+        "ignore_errors is bool and allows program to continue, regardless of encountered issues",
+        "output_dir is used to designate an output folder. For program default, value should be null"
+    ],
+
+    "update_mode": true,
+
+    "verbose": false,
+
+    "ignore_errors": true,
+
+    "output_dir": null,
 
     "urls": [
         "https://www.royalroad.com/fiction/62393/augmented-aspects-steampunk-progression-gamelit",
@@ -65,7 +79,6 @@
         "https://www.royalroad.com/fiction/60890/the-legendary-fool-deckbuilder-litrpg",
         "https://www.royalroad.com/fiction/62431/thorns-a-queer-fairytale",
         "https://www.royalroad.com/fiction/66816/city-of-exiles-a-dd-inspired-adventure",
-        "https://www.royalroad.com/fiction/68094/seeds-of-ruin-farming-litrpg-comedy",
         "https://www.royalroad.com/fiction/62408/the-villainess-route",
         "https://www.royalroad.com/fiction/66093/a-bargain-for-bliss-sequel-to-the-fae-queens-pet",
         "https://www.royalroad.com/fiction/64565/not-your-fantasy-girlfriend-isekai-fantasy-humor",
@@ -105,8 +118,41 @@
         "https://www.royalroad.com/fiction/62881/reborn-as-a-demonic-tree",
         "https://www.royalroad.com/fiction/60292/all-the-dust-that-falls-a-roomba-isekai-adventure",
         "https://www.royalroad.com/fiction/68679/return-of-the-runebound-professor",
-        "https://www.royalroad.com/fiction/71146/boosted-continuation-a-new-world-gl"
-    ],
+        "https://www.royalroad.com/fiction/71146/boosted-continuation-a-new-world-gl",
+        "https://www.royalroad.com/fiction/44589/reborn-from-the-cosmos",
+        "https://www.royalroad.com/fiction/45279/the-knightly-elven-spider-gl-litrpg",
+        "https://www.royalroad.com/fiction/37719/emmy-and-me",
+        "https://www.royalroad.com/fiction/26488/the-devil-in-white-an-awakened-aspirations-online",
+        "https://www.royalroad.com/fiction/44660/the-unified-states-of-mana",
+        "https://www.royalroad.com/fiction/60711/a-coven-of-kobolds-an-isekai-progression-fantasy",
+        "https://www.royalroad.com/fiction/56476/nexus-awakened-an-isekai-litrpg-gender-bender",
+        "https://www.royalroad.com/fiction/52626/sunflower-a-sunflower-based-litrpg",
+        "https://www.royalroad.com/fiction/59315/absolute-sword-goddess",
+        "https://www.royalroad.com/fiction/66279/a-black-market-litrpg",
+        "https://www.royalroad.com/fiction/60269/im-not-a-spider",
+        "https://www.royalroad.com/fiction/37339/universe-tales-virtual-log-of-the-fallen-one",
+        "https://www.royalroad.com/fiction/68456/wild-thought-an-adventure-litrpg",
+        "https://www.royalroad.com/fiction/67016/the-last-rae-of-hope",
+        "https://www.royalroad.com/fiction/43693/owlnother-world",
+        "https://www.royalroad.com/fiction/41521/a-budding-scientist-in-a-fantasy-world",
+        "https://www.royalroad.com/fiction/71371/world-tree-apocalypse-a-pilot-in-another-world",
+        "https://www.royalroad.com/fiction/71472/sigma-16-sci-fi-survival-crafting-litrpg",
+        "https://www.royalroad.com/fiction/71009/the-rise-of-tyrus-progression-fantasy",
+        "https://www.royalroad.com/fiction/68692/isekai-twins",
+        "https://www.royalroad.com/fiction/63485/life-dew-collapse",
+        "https://www.royalroad.com/fiction/68439/sapiens-a-progression-fantasy",
+        "https://www.royalroad.com/fiction/62122/callies-heroes",
+        "https://www.royalroad.com/fiction/60342/safe",
+        "https://www.royalroad.com/fiction/33600/stray-cat-strut",
+        "https://www.royalroad.com/fiction/66595/charting-course-system-unknown-eventual-litrpg",
+        "https://www.royalroad.com/fiction/69701/mirror-murder-mystery-system-litrpg",
+        "https://www.royalroad.com/fiction/31069/eclipse-online-spoon-the-dimension-thief",
+        "https://www.royalroad.com/fiction/66318/vae-victis-progression-litrpg-apocalypse",
+        "https://www.royalroad.com/fiction/60284/cyber-dreams",
+        "https://www.royalroad.com/fiction/60354/mistrunner",
+        "https://www.royalroad.com/fiction/66110/dreamers-throne",
+        "https://www.royalroad.com/fiction/60649/a-countess-magic-a-transmigrated-into-a-villainess",
+        "https://www.royalroad.com/fiction/41463/shipcore"
+    ]
 
-    "mode": "update"
 }
