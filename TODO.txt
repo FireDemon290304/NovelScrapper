@@ -1,0 +1,35 @@
+TODO: Finish implementing the bellow commandline args (if relevant)
+    parser.add_argument("--chapter-format", type=str, default="{title}_{chapter_number}.txt",
+                        help="Custom format for naming the saved chapter files")
+    parser.add_argument("--max-chapters", type=int, help="Maximum number of chapters to scrape")
+    parser.add_argument("--user-agent", type=str, help="Custom user-agent string for HTTP requests")
+    parser.add_argument("--timeout", type=int, help="Maximum time (in seconds) to wait for requests or page loads")
+
+TODO: _scrap_sh
+    webdriver_path = r".\ChromedriverFolder\chromedriver.exe"
+    opera_binary_path = r"C:\Users\Jonathan\AppData\Local\Programs\Opera GX\launcher.exe"\n
+    selenium_options = webdriver.ChromeOptions()
+    selenium_options.binary_location = opera_binary_path
+    selenium_options.add_argument('--headless')  # Run Chrome in headless mode (without opening a browser window)
+    service = Service(webdriver_path)
+    driver = webdriver.Chrome(service=service, options=selenium_options)\n
+    wait = WebDriverWait(driver, 5)  # Wait for a maximum of 5 seconds\n
+    # Find all chapter rows
+    chapters_table = wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="review_new_tab"]/div[2]/div/ol')))
+    print(chapters_table)
+    chapters = ""\n
+    # Get the title of the novel
+    title_element = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='fic_title']")))
+    title = title_element.text\n
+    return chapters, title
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+TODO: Log messages instead of printing when not verbose
+
+TODO: create abstract scrapper class and subclasses for individual sites
+    (see: https://chat.openai.com/share/caa627a1-9a69-4fd2-a982-5571bbd824a3)
