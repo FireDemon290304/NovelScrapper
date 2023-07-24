@@ -1,24 +1,12 @@
-from abc import ABC, abstractmethod
-from single_chapter import chapter_to_txt
+from royal_road_scraper import RoyalRoadScrapper
+from scribblehub_scraper import ScribbleHubScrapper
 from urllib.parse import urlparse
-from bs4 import BeautifulSoup
 from utils import timeme
 from tqdm import tqdm
 import argparse
 import json
-import requests
 import re
 import os
-
-
-class WebScrapper(ABC):
-    @abstractmethod
-    def scrape_chapters(self, fiction_url: str) -> tuple[list, str]:
-        pass
-
-    @abstractmethod
-    def chapter_to_txt(self, url: str = None, folder_name: str = None) -> None:
-        pass
 
 
 class WebScrapperManager:
@@ -62,13 +50,19 @@ class WebScrapperManager:
             self.supported_sites (dict): A dictionary mapping supported web fiction sites (URLs) to their respective scraping
                                          functions.
         """
-        self.verbose = bool
-        self.output_dir = str
-        self.ignore_errors = bool
-        self.update_mode = bool
+        # Flags (default_value, type)
+        self.flags = {
+            "verbose": bool,
+            "output_dir": str,
+            "ignore_errors": bool,
+            "update_mode": bool
+        }
 
-        self.supported_sites = {"https://www.royalroad.com": self._scrap_rr,
-                                "https://www.scribblehub.com": self._scrap_sh}
+        # Scrapper (class)
+        self.scrapper = None
+
+        self.supported_sites = {"https://www.royalroad.com": RoyalRoadScrapper(self),
+                                "https://www.scribblehub.com": ScribbleHubScrapper(self)}
 
     def run(self) -> None:
         """
@@ -88,7 +82,7 @@ class WebScrapperManager:
                             help="Directory to save the scraped fiction (default: current working directory)")
 
         # Action args
-        parser.add_argument("-u", "--update", action="store_true", help="set the mode to update")
+        parser.add_argument("-u", "--update_mode", action="store_true", help="set the mode to update")
         parser.add_argument("-v", "--verbose", action="store_true",
                             help="Enable verbose mode for more detailed output")
         parser.add_argument("-i", "--ignore_errors", action="store_true",
@@ -104,26 +98,25 @@ class WebScrapperManager:
 
             # Check if 'urls' and 'mode' keys exist in the config
             urls = config["urls"]
-            self.verbose = config["verbose"]
-            self.ignore_errors = config["ignore_errors"]
-            self.output_dir = config["output_dir"]
-            self.update_mode = config["update_mode"]
+            self._set_flags(config)
 
             self._config_process(urls_list=urls, verbose=self.verbose)
 
         # Single fiction case
         elif args.url:
             url = args.url
-            self.verbose = args.verbose
-            self.ignore_errors = args.ignore_errors
-            self.output_dir = args.output_dir
-            self.update_mode = args.update
+            self._set_flags(vars(args))
 
             self._config_process(urls_list=[url], verbose=self.verbose)
 
         else:
             parser.error(
                 "Please provide either a JSON configuration file using --config or the URL using --url")
+
+    def _set_flags(self, config_dict: dict):
+        for flag_name, flag_type in self.flags.items():
+            value = config_dict.get(flag_name, None)
+            setattr(self, flag_name, flag_type(value) if value is not None else None)
 
     @staticmethod
     def _get_order(order_file_path: str) -> str:
@@ -180,7 +173,7 @@ class WebScrapperManager:
                 continue
 
             # Scrape the chapter content and save it to a text file within the subdirectory
-            chapter_to_txt(master + chapter_url, folder_path)
+            self.scrapper.chapter_to_txt(master + chapter_url, folder_path)
             if verbose:
                 print(master + chapter_url)
             new_order += (master + chapter_url) + '\n'
@@ -235,8 +228,8 @@ class WebScrapperManager:
             raise ValueError(f"Unsupported site: {master}")
 
         # Get scrapping function for specific site
-        scraping_function = self.supported_sites[master]
-        chapters, title = scraping_function(fiction_url)  # Do stuff
+        self.scrapper = self.supported_sites[master]
+        chapters, title = self.scrapper.scrape_chapters(fiction_url)  # Do stuff
 
         # Create a folder to store the chapter text files
         folder_name = title.replace(" ", "_")
@@ -245,57 +238,6 @@ class WebScrapperManager:
         os.makedirs(folder_path, exist_ok=True)
 
         return master, folder_path, chapters
-
-    def _scrap_rr(self, fiction_url: str) -> tuple[list, str]:
-        """
-        Internal function that scrapes chapters and the title of a web fiction from Royal Road.
-
-        Parameters:
-            fiction_url (str): The URL of the web fiction to scrape.
-
-        Returns:
-            tuple: A tuple containing a list of chapters and the title of the web fiction.
-        """
-        # Send a GET request to the webpage
-        response = requests.get(fiction_url)
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        chapters = []
-        title = ""
-
-        try:
-            # Find all chapter rows
-            chapters = soup.find_all(class_="chapter-row")
-
-            # Get the title of the novel
-            title = soup.find("h1").get_text()
-
-        except AttributeError as e:
-            if not self.ignore_errors:
-                print("Unable to retrieve fiction title: ", e)
-                site_error_msg = soup.find(class_="col-md-12 page-404")
-                msg = site_error_msg.find("p")
-                print(msg.get_text())
-                raise
-
-        return chapters, title
-
-    def _scrap_sh(self, fiction_url: str) -> tuple[list, str]:
-        """
-        Internal function that scrapes chapters and the title of a web fiction from ScribbleHub.
-
-        Parameters:
-            fiction_url (str): The URL of the web fiction to scrape.
-
-        Returns:
-            None
-        """
-
-        # TODO.txt: use selenium because js sucks -_-
-        self.verbose = True
-        fiction_url += ""
-
-        return [], ""
 
 
 if __name__ == '__main__':
