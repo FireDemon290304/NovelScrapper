@@ -11,7 +11,7 @@ from tqdm import tqdm
 from custom_errors import *
 from royal_road_scraper import RoyalRoadScraper
 from utils import timeme
-from wattpad_scrapper import WattpadScraper
+from wattpad_scraper import WattpadScraper
 
 
 class WebScraperManager:
