@@ -1,40 +1,57 @@
-from web_scrapper_abs import WebScrapper
 from bs4 import BeautifulSoup
 import requests
-import re
-import os
+
+from web_scraper_abstract import WebScraper
 
 
-class RoyalRoadScrapper(WebScrapper):
-    def __init__(self, manager):
-        self.manager = manager
+class RoyalRoadScraper(WebScraper):
+    """
+    A web scraper for novels from Royal Road, a web fiction site. It inherits from the WebScraper class, which is an
+    abstract base class providing a common interface for web scraping.
 
-    def scrape_chapters(self, fiction_url: str) -> tuple[list, str]:
+    Attributes:
+        manager (WebScrapperManager): An instance of the WebScrapperManager class that manages the overall web scraping process.
+
+    Methods:
+        __init__(self, manager: WebScrapperManager) -> None: Initializes the RoyalRoadScraper object with the manager instance.
+        scrape_chapters(self, fiction_url: str) -> tuple[list, str]: Scrapes the chapters and title of a web fiction from Royal Road.
+        chapter_to_txt(self, url: str = None, folder_name: str = None) -> None: Scrapes a chapter content from the provided URL
+                                                                                 and saves it to a text file within the subdirectory.
+        _gen_filepath(folder_name: str, soup=None) -> tuple[str, str]: Generates the file path for the text file based on the
+                                                                      subdirectory and chapter title.
+    """
+    def scrape_chapters(self, fiction_url: str) -> tuple[list[str], str]:
         # Send a GET request to the webpage
-        response = requests.get(fiction_url)
+        response = requests.get(fiction_url, headers=self.manager.headers)
+        response.raise_for_status()
+
+        # Create soup object
         soup = BeautifulSoup(response.text, "html.parser")
 
-        chapters = []
+        chapter_paths = []
         title = ""
 
         try:
             # Find all chapter rows
-            chapters = soup.find_all(class_="chapter-row")
+            chapter_paths = soup.find_all(class_="chapter-row")
+
+            # Convert ResultSet to list of strings
+            chapter_paths = [i.find("a")["href"] for i in chapter_paths]
 
             # Get the title of the novel
             title = soup.find("h1").get_text()
 
         except AttributeError as e:
             if not self.manager.ignore_errors:
-                print("Unable to retrieve fiction title: ", e)
+                print("Unable to retrieve fiction info: ", e)
                 site_error_msg = soup.find(class_="col-md-12 page-404")
                 msg = site_error_msg.find("p")
                 print(msg.get_text())
                 raise
 
-        return chapters, title
+        return chapter_paths, title
 
-    def chapter_to_txt(self, url: str = None, folder_name: str = None) -> None:
+    def chapter_to_txt(self, url: str = None, folder_path: str = None) -> None:
         # Send a GET request to the webpage
         response = requests.get(url)
 
@@ -47,38 +64,12 @@ class RoyalRoadScrapper(WebScrapper):
         # Find all paragraph elements within the div
         paragraphs = div_element.find_all("p")
 
+        chapter_name = soup.find("h1").get_text()
+
         # Generate the filepath for the text file
-        file_path, filename = self._gen_filepath(folder_name, soup)
+        file_path, chapter_name = self.gen_filepath(folder_path, chapter_name)
 
         # Writing the chapter content to the text file within the subdirectory
-        try:
-            with open(file_path + ".txt", 'w', encoding='utf-8') as file:
-                for paragraph in paragraphs:
-                    file.write(f'{paragraph.get_text()}\n')
-        except OSError:
-            print(f"Failed to convert {filename} to txt.")
+        self.try_write(file_path, paragraphs, chapter_name)
 
         return None
-
-    @staticmethod
-    def _gen_filepath(folder_name: str, soup=None) -> tuple[str, str]:
-        """
-        Generates the file path for the text file based on the subdirectory and chapter title.
-
-        Args:
-            folder_name (str): The name of the subdirectory.
-            soup (BeautifulSoup): The BeautifulSoup object representing the HTML content.
-
-        Returns:
-            str: The full file path for the text file.
-        """
-        filename = soup.find("h1").get_text()
-
-        # Remove disallowed characters from the filename
-        filename = re.sub(r'[<>:"/\\|?*]', '', filename)
-
-        # Limit the filename length to 255 characters
-        filename = filename[:255]
-
-        # Creating the full path for the text file
-        return os.path.join(folder_name, filename), filename
