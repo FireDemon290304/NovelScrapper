@@ -1,4 +1,4 @@
 # NovelScrapper
-a webscrapper for online webnovels
+A webscrapper for online webnovels
 
-Supports only Royal Road for now
+Supports RoyalRoad and Wattpad
