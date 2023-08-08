@@ -5,16 +5,16 @@
         "update_mode is a bool and enables updating new chapters, rather than creating all chapters from scratch",
         "verbose is a bool and provides info on execution.",
         "ignore_errors is bool and allows program to continue, regardless of encountered issues",
-        "output_dir is used to designate an output folder. For program default, value should be null"
+        "output_dir is used to designate an output folder. For program default, value should be null",
+        "rate_limit: A float deciding the time between scraping of each chapter in seconds",
+        "chapter_limit: Integer limiting the number of total scraped chapters per run (across all fictions and sites)",
     ],
-
     "update_mode": true,
-
-    "verbose": false,
-
+    "verbose": true,
     "ignore_errors": true,
-
     "output_dir": null,
+    "rate_limit": null,
+    "chapter_limit": null,
 
     "urls": [
         "https://www.example.com/1234
