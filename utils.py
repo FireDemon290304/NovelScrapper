@@ -16,18 +16,13 @@ def timeme(method):
 
     def wrapper(*args, **kw):
         verbose = kw.get('verbose', True)  # Get the 'verbose' flag, default is True
-        threshold = kw.pop('threshold', 10)
-        time_format = kw.pop('output_format', 'hmsr')
-        if threshold is None:
-            threshold = 10
-        if time_format is None:
-            time_format = 'hmsr'
+        threshold = kw.get('threshold', 10)
+        time_format = kw.get('output_format', 'hmsr')
 
         start_time = time.time()
         try:
             result = method(*args, **kw)
         except Exception as e:
-            end_time = time.time()
             if verbose:
                 print(f'{method.__name__} raised an exception: {e}.')
             raise
